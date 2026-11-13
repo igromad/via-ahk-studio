@@ -1,35 +1,35 @@
 # VIA-AHK Studio
 
-Visualizador de layouts exportados do VIA com edição de ações AutoHotkey para teclas e encoders. O VIA-AHK Studio complementa o VIA: ele usa arquivos JSON exportados e não altera diretamente o firmware nem o mapeamento do dispositivo.
+Visualize VIA keyboard layouts and edit AutoHotkey actions for keys and encoders. VIA-AHK Studio complements VIA: it uses exported JSON files and does not directly change your device firmware or keymap.
 
-## Requisitos
+## Requirements
 
-- Windows com Windows PowerShell, que já acompanha o sistema, e um navegador.
-- Os arquivos JSON da definição do teclado e do mapeamento exportado pelo VIA.
-- AutoHotkey v1 ou v2 para executar as ações do arquivo `.ahk` correspondente.
+- Windows with Windows PowerShell (included with Windows) and a web browser.
+- The keyboard definition JSON and keymap JSON exported from VIA.
+- AutoHotkey v1 or v2 to run actions in the corresponding `.ahk` file.
 
-Não é necessário instalar Python, Node.js ou bibliotecas adicionais.
+Python, Node.js, and additional libraries are not required.
 
-## Como usar
+## Getting started
 
-1. Abra `Iniciar.bat`. O servidor local inicia minimizado e abre o app no navegador.
-2. Em **Arquivos**, selecione o JSON da definição e o JSON do mapeamento VIA.
-3. Em **Arquivo AutoHotkey**, escolha a versão v1 ou v2 e selecione ou crie um arquivo `.ahk`.
-4. Clique em uma tecla ou em uma das áreas de um encoder para consultar ou editar a ação e seu comentário.
-5. Use as abas no topo para criar, organizar e alternar perfis de macroboards. Os perfis guardam seus próprios arquivos JSON e a referência ao AHK selecionado; também é possível compartilhar um AHK entre perfis.
+1. Open `Iniciar.bat`. The local server starts minimized and opens the app in your browser.
+2. Under **Files**, select the keyboard definition JSON and VIA keymap JSON.
+3. Under **AutoHotkey file**, choose v1 or v2 and select or create an `.ahk` file.
+4. Click a key or an encoder area to view or edit its action and comment.
+5. Use the tabs at the top to create, arrange, and switch between macroboard profiles. Each profile stores its own JSON files and a reference to its selected AHK file; profiles can also share an AHK file.
 
-Segure **Alt** para alternar temporariamente a exibição dos comentários. A rotação do layout, as cores e o tema podem ser alterados pela interface.
+Hold **Alt** to temporarily toggle comments. You can also change the layout rotation, accent color, and theme in the interface. Use the language button in the top bar to switch between English and Portuguese; the app remembers your choice.
 
-## Servidor local
+## Local server
 
-O aplicativo usa um servidor local na porta `8765`. Mantenha sua janela aberta enquanto usa o app. Restaure a janela minimizada e pressione **R** para reiniciar ou **X** para encerrar. O servidor também é encerrado após um período sem contato com uma aba do aplicativo.
+The app uses a local server on port `8765`. Keep its window open while using the app. Restore the minimized window and press **R** to restart or **X** to exit. The server also shuts down after a period without contact from an app tab.
 
-## Arquivos e segurança das alterações
+## Files and backups
 
-Os perfis e cópias dos JSON são armazenados localmente em `%LOCALAPPDATA%\KM16proStudio`. O AHK permanece no local escolhido. Ao salvar uma ação, o app cria uma cópia `.bak` do arquivo anterior e preserva a codificação detectada. Arquivos AHK novos usam UTF-8 com BOM.
+Profiles and copies of the JSON files are stored locally in `%LOCALAPPDATA%\KM16proStudio`. The AHK file stays in the location you choose. When you save an action, the app creates a `.bak` copy of the previous file and preserves its detected encoding. New AHK files use UTF-8 with BOM.
 
-Ao salvar, o app tenta solicitar o recarregamento de uma instância do arquivo AHK que já esteja em execução. Alternar entre v1 e v2 não converte código existente.
+When saving, the app attempts to request a reload of any running instance of the AHK file. Switching between v1 and v2 does not convert existing code.
 
-## Limitações
+## Limitations
 
-O projeto é um protótipo. Algumas estruturas de AHK e contextos ainda podem exigir edição no editor externo. Revise as ações antes de executá-las; teclas que compartilham um bloco AHK compartilham também as alterações feitas nesse bloco.
+This project is a prototype. Some AHK structures and contexts may need to be edited in an external editor. Review actions before running them. Keys that share an AHK block also share edits made to that block.

@@ -357,5 +357,6 @@ html[data-theme="dark"] .comment-overlay-label{background:linear-gradient(to bot
 .comment-knob-panel div{display:flex;align-items:baseline;gap:6px;overflow-wrap:anywhere}.comment-knob-panel div+div{margin-top:4px}.comment-knob-panel b{width:12px;flex:none;text-align:center;color:var(--accent-strong)}
 html[data-theme="dark"] .comment-knob-panel{background:rgba(29,42,47,.88);color:#f5f7f6;border-color:#ffffff24}.comment-knob-panel span{min-width:0}
 html[data-theme="dark"] .key-description-tooltip{background:var(--dark-control);border-color:var(--accent-hue);color:var(--dark-text);box-shadow:0 6px 20px #0008}
+.language-toggle{flex:none;width:38px;height:34px;border:1px solid #dfe2d8;border-radius:8px;background:#fffefa;color:#4f5a4e;font:700 10px var(--mono);letter-spacing:.03em;cursor:pointer}.language-toggle:hover{border-color:var(--accent-hue);background:var(--accent-soft);color:var(--accent-strong)}.language-toggle:focus-visible{outline:2px solid var(--accent-hue);outline-offset:2px}html[data-theme="dark"] .language-toggle{background:var(--dark-control);border-color:var(--dark-border);color:var(--dark-text)}@media(max-width:650px){.language-toggle{width:32px;height:32px}}
 .profile-dialog .profile-rename-error{margin:8px 0 0;color:#b54444;font-size:11px;line-height:1.4}
 html[data-theme="dark"] .profile-dialog .profile-rename-error{color:#ffaaa3}

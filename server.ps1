@@ -23,7 +23,7 @@ function Expand-ProfileEntries($Items) {
   }
 }
 function Get-ProfileRegistry {
-  try { $data=Get-Content -Raw -LiteralPath $ProfilesPath | ConvertFrom-Json; Expand-ProfileEntries $data } catch { throw 'Não foi possível ler o registro de perfis.' }
+  try { $data=Get-Content -Raw -LiteralPath $ProfilesPath | ConvertFrom-Json; Expand-ProfileEntries $data } catch { throw 'Could not read the profile registry.' }
 }
 function Set-ProfileRegistry($Profiles) {
   $entries=@(Expand-ProfileEntries $Profiles | ForEach-Object { ConvertTo-Json -InputObject @{id=$_.id;name=$_.name} -Compress })
@@ -31,7 +31,7 @@ function Set-ProfileRegistry($Profiles) {
 }
 function Activate-Profile([string]$Id,[switch]$Persist) {
   $profiles=Get-ProfileRegistry; $profile=@($profiles|Where-Object {$_.id -eq $Id})|Select-Object -First 1
-  if(!$profile){throw 'Perfil não encontrado.'}
+  if(!$profile){throw 'Profile not found.'}
   $script:ProfileId=[string]$profile.id
   $script:ProfileDirectory=Join-Path (Join-Path $DataDir 'profiles') $script:ProfileId
   New-Item -ItemType Directory -Path $script:ProfileDirectory -Force | Out-Null
@@ -49,14 +49,14 @@ function Activate-Profile([string]$Id,[switch]$Persist) {
 function Ensure-Data {
   New-Item -ItemType Directory -Path $DataDir -Force | Out-Null
   if(!(Test-Path $ProfilesPath)){
-    $first=@{id='main';name='Perfil principal'};Set-ProfileRegistry @($first)
+    $first=@{id='main';name='Main profile'};Set-ProfileRegistry @($first)
     $firstDir=Join-Path (Join-Path $DataDir 'profiles') 'main';New-Item -ItemType Directory -Path $firstDir -Force|Out-Null
     foreach($name in @('definition.json','mapping.json')){$legacy=Join-Path $DataDir $name;if(Test-Path $legacy){Copy-Item -LiteralPath $legacy -Destination (Join-Path $firstDir $name) -Force}}
     if(Test-Path $LegacyVersionPath){Copy-Item -LiteralPath $LegacyVersionPath -Destination (Join-Path $firstDir 'ahk-version.json') -Force}
     if(Test-Path $LegacySavedPath){$oldPath=(Get-Content -Raw -LiteralPath $LegacySavedPath).Trim();if($oldPath){[IO.File]::WriteAllText((Join-Path $firstDir 'action-file.txt'),$oldPath,[Text.UTF8Encoding]::new($false))}}
     [IO.File]::WriteAllText($ActiveProfilePath,'main',[Text.UTF8Encoding]::new($false))
   }
-  $profiles=Get-ProfileRegistry;if(!$profiles.Count){$first=@{id='main';name='Perfil principal'};Set-ProfileRegistry @($first);$profiles=@($first)}
+  $profiles=Get-ProfileRegistry;if(!$profiles.Count){$first=@{id='main';name='Main profile'};Set-ProfileRegistry @($first);$profiles=@($first)}
   $active='';if(Test-Path $ActiveProfilePath){$active=(Get-Content -Raw -LiteralPath $ActiveProfilePath).Trim()}
   if(!$active -or !(@($profiles|Where-Object {$_.id -eq $active}).Count)){$active=[string]$profiles[0].id}
   [void](Activate-Profile $active -Persist)
@@ -209,7 +209,7 @@ function Get-Hotkeys([string]$Text) {
 }
 function Read-Entry([string]$Trigger,[string]$Context) {
   $text=(Read-AhkFile $script:ActionPath); $matches=@(Get-Hotkeys $text | Where-Object {(Get-HotkeyCanonical $_.trigger) -eq (Get-HotkeyCanonical $Trigger) -and $_.context -eq $Context})
-  if ($matches.Count -gt 1 -or ($matches.Count -and !$matches[0].complete)) { throw 'Trigger ambíguo ou bloco incompleto; arquivo preservado para revisão.' }
+  if ($matches.Count -gt 1 -or ($matches.Count -and !$matches[0].complete)) { throw 'Ambiguous trigger or incomplete block; the file was preserved for review.' }
   if (!$matches.Count) { return @{code='';comment=''} }
   $body=$matches[0].body -split "`n"; $comments=[Collections.Generic.List[string]]::new()
   while ($body.Count -and (!$body[0].Trim() -or $body[0].TrimStart().StartsWith(';'))) {if ($body[0].TrimStart().StartsWith(';')) {$comments.Add($body[0].TrimStart().Substring(1).Trim())};$body=@($body | Select-Object -Skip 1)}
@@ -217,8 +217,8 @@ function Read-Entry([string]$Trigger,[string]$Context) {
 }
 function Write-Entry([string]$Trigger,[string]$Context,[string]$Code,[string]$Comment) {
   $text=(Read-AhkFile $script:ActionPath); $blocks=@(Get-Hotkeys $text | Where-Object {(Get-HotkeyCanonical $_.trigger) -eq (Get-HotkeyCanonical $Trigger) -and $_.context -eq $Context})
-  if ($blocks.Count -gt 1 -or ($blocks.Count -and !$blocks[0].complete)) {throw 'Hotkey ambígua ou incompleta neste contexto; arquivo preservado.'}
-  if($blocks.Count -and $blocks[0].unsafeHeader){throw 'O cabeçalho contém comentários; edite no editor externo para preservá-los.'};if($blocks.Count -and $blocks[0].unsafeBody){throw 'A ação contém fluxo condicional que precisa ser editado no editor externo.'};if($blocks.Count){$Trigger=$blocks[0].trigger}
+  if ($blocks.Count -gt 1 -or ($blocks.Count -and !$blocks[0].complete)) {throw 'Ambiguous or incomplete hotkey in this context; the file was preserved.'}
+  if($blocks.Count -and $blocks[0].unsafeHeader){throw 'The header contains comments; edit it in the external editor to preserve them.'};if($blocks.Count -and $blocks[0].unsafeBody){throw 'The action contains conditional logic that must be edited in the external editor.'};if($blocks.Count){$Trigger=$blocks[0].trigger}
   $prefix=(($Comment -split "`r?`n" | Where-Object {$_}) | ForEach-Object {'; '+$_}) -join "`r`n"
   if ($prefix) {$prefix+="`r`n"}; $v=Get-Version
   if ($v -eq '2') {if($blocks.Count -and $blocks[0].braceNext){$replacement="$Trigger::`r`n{`r`n$prefix$Code`r`n}"}else{$replacement="$Trigger::{`r`n$prefix$Code`r`n}"}} else {$headers=if($blocks.Count -and $blocks[0].shared){$blocks[0].sharedHeaders}else{"$Trigger::"};$endReturn=if($Code -match '(?im)^\s*return\s*(?:;.*)?\s*$' -and $Code.TrimEnd() -match '(?i)(?:^|\n)\s*return\s*(?:;[^\r\n]*)?$'){''}else{"`r`nreturn"};$replacement="$headers`r`n$prefix$Code$endReturn"}
@@ -229,7 +229,7 @@ function Write-Entry([string]$Trigger,[string]$Context,[string]$Code,[string]$Co
     $text=($(if($before){$before+"`r`n`r`n"}else{''})+$replacement+"`r`n`r`n"+$after)
   }
   else {
-    if ($Context -notmatch '^exe:[\w.-]+\.exe$') {throw 'Contexto inválido.'};$exe=$Context.Substring(4);$directive=if ($v -eq '2') {'#HotIf'} else {'#If'}
+    if ($Context -notmatch '^exe:[\w.-]+\.exe$') {throw 'Invalid context.'};$exe=$Context.Substring(4);$directive=if ($v -eq '2') {'#HotIf'} else {'#If'}
     $directives=[regex]::Matches($text,'(?im)^[ \t]*#(?:IfWinActive|If|HotIf)(?=[ \t\r\n]|$)[^\r\n]*');$inserted=$false
     for($n=0;$n -lt $directives.Count;$n++){
       $line=$directives[$n].Value;$match=[regex]::Match($line,'(?i)^\s*#(?:If|HotIf)\s+WinActive\(\s*["'']ahk_exe\s+([\w.-]+\.exe)["'']\s*\)\s*(?:;.*)?$');if(!$match.Success){$match=[regex]::Match($line,'(?i)^\s*#IfWinActive\s+ahk_exe\s+([\w.-]+\.exe)\s*(?:;.*)?$')}
@@ -247,7 +247,7 @@ function Send-Response($Response,[int]$Status=200,[string]$Type='application/jso
 function Fail([string]$Message,[int]$Status=400) {Send-Response @{ok=$false;error=$Message} $Status}
 function Handle-Request($Request,$Response) {
   $script:Response=$Response
-  if ($Request.Url.Host -notin @('127.0.0.1','localhost') -or $Request.Url.Port -ne $Port) {return (Fail 'Host não permitido.' 403)}
+  if ($Request.Url.Host -notin @('127.0.0.1','localhost') -or $Request.Url.Port -ne $Port) {return (Fail 'Host not allowed.' 403)}
   if ($Request.HttpMethod -eq 'OPTIONS') {$Response.Headers['Access-Control-Allow-Origin']="http://127.0.0.1:$Port";$Response.Headers['Access-Control-Allow-Headers']='Content-Type, X-KM16-Token';$Response.Headers['Access-Control-Allow-Methods']='GET, POST, OPTIONS';$Response.StatusCode=204;$Response.Close();return}
   $path=$Request.Url.AbsolutePath
   if ($Request.HttpMethod -eq 'GET' -and $path -eq '/api/state') {
@@ -255,37 +255,37 @@ function Handle-Request($Request,$Response) {
   }
   if ($Request.HttpMethod -eq 'GET' -and $path -eq '/api/action') {
     $trigger=$Request.QueryString['trigger'];$context=$Request.QueryString['context'];if(!$context){$context='global'}
-    if($trigger -notmatch '^[A-Za-z0-9_.:+^!#-]{1,120}$'){return(Fail 'Trigger inválido.')};try{$entry=Read-Entry $trigger $context;return(Send-Response (@{ok=$true;trigger=$trigger;context=$context}+ $entry))}catch{return(Fail $_.Exception.Message 409)}
+    if($trigger -notmatch '^[A-Za-z0-9_.:+^!#-]{1,120}$'){return(Fail 'Invalid trigger.')};try{$entry=Read-Entry $trigger $context;return(Send-Response (@{ok=$true;trigger=$trigger;context=$context}+ $entry))}catch{return(Fail $_.Exception.Message 409)}
   }
   if ($Request.HttpMethod -eq 'POST') {
-    if ($Request.Headers['X-KM16-Token'] -ne $Token) {return(Fail 'Token de sessão inválido; recarregue o aplicativo.' 403)}
-    $reader=[IO.StreamReader]::new($Request.InputStream,[Text.Encoding]::UTF8);try{$data=$reader.ReadToEnd()|ConvertFrom-Json}catch{return(Fail 'JSON inválido.')};
+    if ($Request.Headers['X-KM16-Token'] -ne $Token) {return(Fail 'Invalid session token; reload the application.' 403)}
+    $reader=[IO.StreamReader]::new($Request.InputStream,[Text.Encoding]::UTF8);try{$data=$reader.ReadToEnd()|ConvertFrom-Json}catch{return(Fail 'Invalid JSON.')};
     switch ($path) {
       '/api/heartbeat' {$script:LastHeartbeat=[DateTime]::UtcNow;return(Send-Response @{ok=$true})}
       '/api/profiles' {
-        Ensure-Data;$name=([string]$data.name).Trim();if($name.Length -lt 1 -or $name.Length -gt 48){return(Fail 'O nome do perfil deve ter entre 1 e 48 caracteres.')}
-        $profiles=@(Get-ProfileRegistry);if(@($profiles|Where-Object {$_.name -eq $name}).Count){return(Fail 'Já existe um perfil com esse nome.')}
+        Ensure-Data;$name=([string]$data.name).Trim();if($name.Length -lt 1 -or $name.Length -gt 48){return(Fail 'The profile name must be between 1 and 48 characters.')}
+        $profiles=@(Get-ProfileRegistry);if(@($profiles|Where-Object {$_.name -eq $name}).Count){return(Fail 'A profile with this name already exists.')}
         $id='board-'+[guid]::NewGuid().ToString('N');$profile=@{id=$id;name=$name};$newProfiles=@($profiles)+@($profile);Set-ProfileRegistry $newProfiles
         [void](Activate-Profile $id -Persist);return(Send-Response (Get-AppState))
       }
       '/api/profile/select' {Ensure-Data;$id=[string]$data.id;try{[void](Activate-Profile $id -Persist);return(Send-Response (Get-AppState))}catch{return(Fail $_.Exception.Message 404)}}
-      '/api/profile/reorder' {Ensure-Data;$profiles=@(Get-ProfileRegistry);$ids=@($data.ids | ForEach-Object {[string]$_});if($ids.Count -ne $profiles.Count -or @($ids | Select-Object -Unique).Count -ne $profiles.Count){return(Fail 'Ordem de perfis inválida.')};$ordered=@();foreach($id in $ids){$match=@($profiles|Where-Object {$_.id -ceq $id});if($match.Count -ne 1){return(Fail 'Perfil não encontrado.')};$ordered+= $match[0]};Set-ProfileRegistry $ordered;return(Send-Response @{ok=$true;profiles=@($ordered);profileId=$script:ProfileId})}
-      '/api/profile/reuse-ahk' {Ensure-Data;$id=[string]$data.id;if($id -eq $script:ProfileId -or !@((Get-ProfileRegistry)|Where-Object {$_.id -eq $id}).Count){return(Fail 'Perfil de origem inválido.')};$dir=Join-Path (Join-Path $DataDir 'profiles') $id;$saved=Join-Path $dir 'action-file.txt';$ver=Join-Path $dir 'ahk-version.json';if(!(Test-Path $saved)){return(Fail 'O perfil não possui arquivo AHK.')};$chosen=(Get-Content -Raw -LiteralPath $saved).Trim();if(!(Test-Path -LiteralPath $chosen) -or [IO.Path]::GetExtension($chosen) -ine '.ahk'){return(Fail 'O arquivo AHK do perfil não foi encontrado.')};$version='1';if(Test-Path $ver){$version=[string](Get-Content -Raw -LiteralPath $ver|ConvertFrom-Json).version};if($version -notin @('1','2')){return(Fail 'Versão AHK inválida no perfil de origem.')};[IO.File]::WriteAllText($script:SavedPath,$chosen,[Text.UTF8Encoding]::new($false));Atomic-Write $script:VersionPath ('{"version":"'+$version+'"}');return(Send-Response (Get-AppState))}
-      '/api/profile/rename' {Ensure-Data;$id=[string]$data.id;$name=([string]$data.name).Trim();$profiles=@(Get-ProfileRegistry);$profile=@($profiles|Where-Object {$_.id -eq $id})|Select-Object -First 1;if(!$profile){return(Fail 'Perfil não encontrado.' 404)};if(!$name -or $name.Length -gt 48 -or @($profiles|Where-Object {$_.id -ne $id -and $_.name -eq $name}).Count){return(Fail 'Nome inválido ou já utilizado.')};$profile.name=$name;Set-ProfileRegistry $profiles;return(Send-Response (Get-AppState))}
-      '/api/profile/delete' {Ensure-Data;$id=[string]$data.id;$profiles=@(Get-ProfileRegistry);if($profiles.Count -le 1){return(Fail 'Mantenha pelo menos um perfil.')};if(!@($profiles|Where-Object {$_.id -eq $id}).Count){return(Fail 'Perfil não encontrado.' 404)};$remaining=@($profiles|Where-Object {$_.id -ne $id});Set-ProfileRegistry $remaining;if($script:ProfileId -eq $id){[void](Activate-Profile ([string]$remaining[0].id) -Persist)};return(Send-Response (Get-AppState))}
+      '/api/profile/reorder' {Ensure-Data;$profiles=@(Get-ProfileRegistry);$ids=@($data.ids | ForEach-Object {[string]$_});if($ids.Count -ne $profiles.Count -or @($ids | Select-Object -Unique).Count -ne $profiles.Count){return(Fail 'Invalid profile order.')};$ordered=@();foreach($id in $ids){$match=@($profiles|Where-Object {$_.id -ceq $id});if($match.Count -ne 1){return(Fail 'Profile not found.')};$ordered+= $match[0]};Set-ProfileRegistry $ordered;return(Send-Response @{ok=$true;profiles=@($ordered);profileId=$script:ProfileId})}
+      '/api/profile/reuse-ahk' {Ensure-Data;$id=[string]$data.id;if($id -eq $script:ProfileId -or !@((Get-ProfileRegistry)|Where-Object {$_.id -eq $id}).Count){return(Fail 'Invalid source profile.')};$dir=Join-Path (Join-Path $DataDir 'profiles') $id;$saved=Join-Path $dir 'action-file.txt';$ver=Join-Path $dir 'ahk-version.json';if(!(Test-Path $saved)){return(Fail 'The profile has no AHK file.')};$chosen=(Get-Content -Raw -LiteralPath $saved).Trim();if(!(Test-Path -LiteralPath $chosen) -or [IO.Path]::GetExtension($chosen) -ine '.ahk'){return(Fail 'The profile AHK file could not be found.')};$version='1';if(Test-Path $ver){$version=[string](Get-Content -Raw -LiteralPath $ver|ConvertFrom-Json).version};if($version -notin @('1','2')){return(Fail 'Invalid AHK version in the source profile.')};[IO.File]::WriteAllText($script:SavedPath,$chosen,[Text.UTF8Encoding]::new($false));Atomic-Write $script:VersionPath ('{"version":"'+$version+'"}');return(Send-Response (Get-AppState))}
+      '/api/profile/rename' {Ensure-Data;$id=[string]$data.id;$name=([string]$data.name).Trim();$profiles=@(Get-ProfileRegistry);$profile=@($profiles|Where-Object {$_.id -eq $id})|Select-Object -First 1;if(!$profile){return(Fail 'Profile not found.' 404)};if(!$name -or $name.Length -gt 48 -or @($profiles|Where-Object {$_.id -ne $id -and $_.name -eq $name}).Count){return(Fail 'Invalid name or name already in use.')};$profile.name=$name;Set-ProfileRegistry $profiles;return(Send-Response (Get-AppState))}
+      '/api/profile/delete' {Ensure-Data;$id=[string]$data.id;$profiles=@(Get-ProfileRegistry);if($profiles.Count -le 1){return(Fail 'Keep at least one profile.')};if(!@($profiles|Where-Object {$_.id -eq $id}).Count){return(Fail 'Profile not found.' 404)};$remaining=@($profiles|Where-Object {$_.id -ne $id});Set-ProfileRegistry $remaining;if($script:ProfileId -eq $id){[void](Activate-Profile ([string]$remaining[0].id) -Persist)};return(Send-Response (Get-AppState))}
       '/api/action' {try{Write-Entry ([string]$data.trigger) ([string]$data.context) ([string]$data.code) ([string]$data.comment)}catch{return(Fail $_.Exception.Message 409)};$reload=Request-AhkReload $script:ActionPath;return(Send-Response @{ok=$true;trigger=$data.trigger;context=$data.context;actionFile=$script:ActionPath;reload=$reload})}
-      '/api/files' {try{Ensure-Data;foreach($p in $data.files.PSObject.Properties){if($p.Name -notin @('definition.json','mapping.json')){throw 'Nome de arquivo não permitido.'};$serialized=$p.Value|ConvertTo-Json -Depth 100;[IO.File]::WriteAllText((Join-Path $script:ProfileDirectory $p.Name),$serialized,[Text.UTF8Encoding]::new($false))};return(Send-Response @{ok=$true;profileId=$script:ProfileId})}catch{return(Fail $_.Exception.Message 400)}}
-      '/api/version' {if($data.version -notin @('1','2')){return(Fail 'Versão inválida.')};$existing=(Read-AhkFile $script:ActionPath);$rest=[regex]::Replace($existing,'(?im)^\s*#Requires\s+AutoHotkey\s+v?[12](?:\.\d+)*\s*$','').Trim();if($rest){return(Fail 'A versão só pode mudar antes de haver ações no arquivo.' 409)};$required=if($data.version -eq '1'){'v1.1'}else{'v2.0'};Atomic-Write $script:ActionPath ("#Requires AutoHotkey $required`r`n`r`n");Atomic-Write $VersionPath ('{"version":"'+$data.version+'"}');return(Send-Response @{ok=$true;version=$data.version})}
-      '/api/select-file' {Ensure-Data;$version=[string]$data.version;if($version -notin @('1','2')){return(Fail 'Selecione AutoHotkey v1 ou v2.')};$dialog=if($data.mode -eq 'new'){[System.Windows.Forms.SaveFileDialog]::new()}else{[System.Windows.Forms.OpenFileDialog]::new()};$dialog.Filter='AutoHotkey (*.ahk)|*.ahk';$dialog.DefaultExt='ahk';$dialog.AddExtension=$true;if($dialog.ShowDialog() -ne 'OK'){return(Send-Response @{ok=$true;cancelled=$true})};$chosen=$dialog.FileName;if($data.mode -eq 'new' -and (Test-Path $chosen)){return(Fail 'O arquivo já existe; escolha outro nome.' 409)};if($data.mode -eq 'new'){$required=if($version -eq '1'){'v1.1'}else{'v2.0'};[IO.File]::WriteAllText($chosen,"#Requires AutoHotkey $required`r`n`r`n",[Text.UTF8Encoding]::new($true))};$text=(Read-AhkFile $chosen);$requires=[regex]::Match($text,'(?mi)^\s*#Requires\s+AutoHotkey\s+v?([12])(?:\.\d+)*\s*$');if($requires.Success -and $requires.Groups[1].Value -ne $version){return(Fail 'A versão escolhida diverge da diretiva #Requires do arquivo.' 409)};$script:ActionPath=$chosen;[IO.File]::WriteAllText($script:SavedPath,$chosen,[Text.UTF8Encoding]::new($false));Atomic-Write $script:VersionPath ('{"version":"'+$version+'"}');return(Send-Response @{ok=$true;cancelled=$false;actionFile=$chosen;contexts=(Get-Contexts $text)})}
+      '/api/files' {try{Ensure-Data;foreach($p in $data.files.PSObject.Properties){if($p.Name -notin @('definition.json','mapping.json')){throw 'File name not allowed.'};$serialized=$p.Value|ConvertTo-Json -Depth 100;[IO.File]::WriteAllText((Join-Path $script:ProfileDirectory $p.Name),$serialized,[Text.UTF8Encoding]::new($false))};return(Send-Response @{ok=$true;profileId=$script:ProfileId})}catch{return(Fail $_.Exception.Message 400)}}
+      '/api/version' {if($data.version -notin @('1','2')){return(Fail 'Invalid version.')};$existing=(Read-AhkFile $script:ActionPath);$rest=[regex]::Replace($existing,'(?im)^\s*#Requires\s+AutoHotkey\s+v?[12](?:\.\d+)*\s*$','').Trim();if($rest){return(Fail 'The version can only be changed before the file contains any actions.' 409)};$required=if($data.version -eq '1'){'v1.1'}else{'v2.0'};Atomic-Write $script:ActionPath ("#Requires AutoHotkey $required`r`n`r`n");Atomic-Write $VersionPath ('{"version":"'+$data.version+'"}');return(Send-Response @{ok=$true;version=$data.version})}
+      '/api/select-file' {Ensure-Data;$version=[string]$data.version;if($version -notin @('1','2')){return(Fail 'Select AutoHotkey v1 or v2.')};$dialog=if($data.mode -eq 'new'){[System.Windows.Forms.SaveFileDialog]::new()}else{[System.Windows.Forms.OpenFileDialog]::new()};$dialog.Filter='AutoHotkey (*.ahk)|*.ahk';$dialog.DefaultExt='ahk';$dialog.AddExtension=$true;if($dialog.ShowDialog() -ne 'OK'){return(Send-Response @{ok=$true;cancelled=$true})};$chosen=$dialog.FileName;if($data.mode -eq 'new' -and (Test-Path $chosen)){return(Fail 'The file already exists; choose a different name.' 409)};if($data.mode -eq 'new'){$required=if($version -eq '1'){'v1.1'}else{'v2.0'};[IO.File]::WriteAllText($chosen,"#Requires AutoHotkey $required`r`n`r`n",[Text.UTF8Encoding]::new($true))};$text=(Read-AhkFile $chosen);$requires=[regex]::Match($text,'(?mi)^\s*#Requires\s+AutoHotkey\s+v?([12])(?:\.\d+)*\s*$');if($requires.Success -and $requires.Groups[1].Value -ne $version){return(Fail 'The selected version does not match the file''s #Requires directive.' 409)};$script:ActionPath=$chosen;[IO.File]::WriteAllText($script:SavedPath,$chosen,[Text.UTF8Encoding]::new($false));Atomic-Write $script:VersionPath ('{"version":"'+$version+'"}');return(Send-Response @{ok=$true;cancelled=$false;actionFile=$chosen;contexts=(Get-Contexts $text)})}
       '/api/open-editor' {try{Start-Process $script:ActionPath -Verb Edit;return(Send-Response @{ok=$true;actionFile=$script:ActionPath})}catch{return(Fail $_.Exception.Message 500)}}
-      default {return(Fail 'Rota não encontrada.' 404)}
+      default {return(Fail 'Route not found.' 404)}
     }
   }
   if ($Request.HttpMethod -eq 'GET') {
-    $relative=if($path -eq '/'){'index.html'}else{$path.TrimStart('/')};$target=[IO.Path]::GetFullPath((Join-Path $Root $relative));if(!$target.StartsWith($Root,[StringComparison]::OrdinalIgnoreCase) -or !(Test-Path -LiteralPath $target)){return(Fail 'Arquivo não encontrado.' 404)}
+    $relative=if($path -eq '/'){'index.html'}else{$path.TrimStart('/')};$target=[IO.Path]::GetFullPath((Join-Path $Root $relative));if(!$target.StartsWith($Root,[StringComparison]::OrdinalIgnoreCase) -or !(Test-Path -LiteralPath $target)){return(Fail 'File not found.' 404)}
     $type=switch([IO.Path]::GetExtension($target).ToLowerInvariant()){'.html'{'text/html; charset=utf-8'}'.js'{'text/javascript; charset=utf-8'}'.css'{'text/css; charset=utf-8'}'.svg'{'image/svg+xml'}default{'application/octet-stream'}};return(Send-Response ([IO.File]::ReadAllBytes($target)) 200 $type)
   }
-  Fail 'Rota não encontrada.' 404
+  Fail 'Route not found.' 404
 }
 
 Ensure-Data
@@ -293,8 +293,8 @@ $listener=[Net.HttpListener]::new();$listener.Prefixes.Add("http://127.0.0.1:$Po
 try {
   $listener.Start()
   Start-Process "http://127.0.0.1:$Port/"
-  Write-Host "VIA-AHK Studio aberto em http://127.0.0.1:$Port/"
-  Write-Host "R: reiniciar   X: fechar"
+  Write-Host "VIA-AHK Studio opened at http://127.0.0.1:$Port/"
+  Write-Host "R: restart   X: close"
   $script:LastHeartbeat=[DateTime]::UtcNow
   $restartRequested=$false
   $pending=$listener.BeginGetContext($null,$null)
