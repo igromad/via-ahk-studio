@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>VIA-AHK Studio — mockup final</title>
+  <style>
+    :root{font-family:Inter,"Segoe UI",Arial,sans-serif;color:#282c25;background:#f2f2ed;font-synthesis:none;--ink:#282c25;--muted:#777d70;--line:#e4e5dc;--green:#a9c975;--paper:#fffefa;--soft:#f7f7f1;--mono:"Cascadia Code",Consolas,monospace}
+    *{box-sizing:border-box}body{margin:0;min-width:320px}button,select,input,textarea{font:inherit}button{cursor:pointer}button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid #78994b;outline-offset:2px}
+    .app{min-height:100vh;display:flex;flex-direction:column;padding:0 30px}.topbar{height:68px;flex:none;display:flex;align-items:center;justify-content:space-between;gap:20px;border-bottom:1px solid #dedfd7}.brand{display:flex;align-items:center;gap:10px;color:var(--ink);text-decoration:none;font-weight:750;font-size:19px;letter-spacing:-.7px}.mark{width:25px;height:25px;border:1.5px solid;border-radius:7px;display:grid;grid-template-columns:1fr 1fr;gap:3px;padding:4px;transform:rotate(-5deg)}.mark i{background:#33392f;border-radius:2px}.mark i:nth-child(2),.mark i:nth-child(3){background:#9cbd65}.brand span:last-child span{color:#84897d;font-weight:450}.top-right{display:flex;align-items:center;gap:11px}.profile{display:grid;gap:3px;min-width:175px}.eyebrow{font:9px var(--mono);letter-spacing:.08em;color:#818778}.profile select,.control select{appearance:none;border:1px solid #dedfd6;border-radius:7px;background:#fffefa;padding:8px 30px 8px 10px;color:#34392f;font-size:12px}.profile select{width:100%}.new-profile{height:36px;display:flex;align-items:center;gap:7px;border:1px solid #a6bd79;border-radius:7px;background:#edf4df;padding:0 12px;color:#3d4b30;font-size:12px;font-weight:650}.new-profile b{display:grid;place-items:center;width:19px;height:19px;border-radius:50%;background:#dae9bd;font-size:16px;line-height:1}.online{display:flex;align-items:center;gap:8px;border-left:1px solid #dedfd6;padding-left:14px;color:#73796d;font-size:11px;white-space:nowrap}.dot{width:7px;height:7px;border-radius:50%;background:#9fca65}
+    main{flex:1;min-height:0;padding:18px 0 22px}.workspace{min-height:calc(100vh - 108px);display:grid;grid-template-columns:252px minmax(420px,1fr) 340px;gap:14px}.panel{min-width:0;border:1px solid #e0e1d8;border-radius:11px;background:var(--paper);box-shadow:0 2px 7px #28302005}.settings,.editor{padding:18px}.heading{display:flex;align-items:center;gap:9px;margin-bottom:5px}.heading h1,.heading h2{margin:0;font-size:15px;letter-spacing:-.3px}.step{font:10px var(--mono);color:#939a88}.hint{margin:0 0 16px 25px;color:#83887c;font-size:11px;line-height:1.45}
+    .file-card{display:flex;align-items:flex-start;gap:10px;padding:11px;border:1px solid #e5e6de;border-radius:8px;background:#fff;margin:8px 0}.file-icon{flex:none;display:grid;place-items:center;width:30px;height:30px;border-radius:7px;background:#eef3e5;color:#6b8250;font-size:15px}.file-info{min-width:0;flex:1}.file-info strong{display:block;font-size:11px}.file-info small{display:block;margin-top:3px;color:#898e82;font-size:10px}.file-name{display:block;overflow:hidden;margin-top:8px;color:#727a67;font:9px var(--mono);text-overflow:ellipsis;white-space:nowrap}.config{margin-top:17px;padding-top:15px;border-top:1px solid #ecece6}.config-title{margin-bottom:9px;color:#646a5e;font-size:11px;font-weight:650}.btn-row{display:flex;gap:6px}.quiet{min-height:32px;flex:1;border:1px solid #dedfd7;border-radius:6px;background:white;color:#545a4e;font-size:10px;font-weight:600}.path{display:block;overflow:hidden;margin-top:8px;color:#83887d;font:9px var(--mono);text-overflow:ellipsis;white-space:nowrap}.control{position:relative;display:grid;gap:6px;min-width:0}.control select{width:100%;font-size:11px}.config .control{margin-top:14px}.config-note{margin:9px 0 0;color:#858a7e;font-size:10px;line-height:1.45}.local-note{display:flex;gap:8px;margin-top:16px;padding:10px;border-radius:7px;background:#f5f6f0;color:#787e72;font-size:10px;line-height:1.45}.local-note b{color:#7f9560}
+    .center{display:flex;flex-direction:column;padding:18px;min-height:0}.center-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px}.center-head .hint{margin-bottom:0}.controls{display:flex;align-items:flex-end;gap:8px}.control.layer{width:118px}.control.context{width:155px}.rotation{display:grid;gap:6px;width:106px}.rotate{height:35px;display:grid;grid-template-columns:32px 1fr 32px;align-items:center;gap:3px;border:1px solid #dedfd6;border-radius:7px;background:white;padding:3px}.rotate button{height:27px;border:0;border-radius:5px;background:#f1f3eb;color:#4c5940;font-size:17px}.rotate output{text-align:center;font:10px var(--mono);color:#4f5649}
+    .stage{position:relative;flex:1;min-height:360px;margin-top:15px;display:grid;place-items:center;overflow:hidden;border:1px solid #e3e4dc;border-radius:9px;background:radial-gradient(ellipse at center,#fffefa 0,#fafaf5 56%,#f5f5ef 100%)}.stage-meta{position:absolute;top:13px;left:15px;right:15px;display:flex;justify-content:space-between;color:#858b7f;font:9px var(--mono);letter-spacing:.04em}.led{display:inline-block;width:6px;height:6px;margin-right:6px;border-radius:50%;background:#a8cf6d}
+    .board{position:relative;width:min(100%,390px);height:396px;padding:12px;border:1px solid #272d26;border-radius:14px;background:linear-gradient(145deg,#454b43,#292e29);box-shadow:inset 0 1px #ffffff36,0 12px 25px #24291e2c}.key-grid{width:calc(100% - 86px);height:100%;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-template-rows:repeat(4,minmax(0,1fr));gap:6px}.key{position:relative;display:grid;place-items:center;min-width:0;border:1px solid #d8dacf;border-radius:6px;background:linear-gradient(145deg,#fffefa,#efefe8);box-shadow:0 3px 0 #d1d2c8;color:#4d5348;font:600 11px var(--mono);transition:.12s}.key:hover{border-color:#9db96a;transform:translateY(-1px)}.key.active{border-color:#78984b;background:linear-gradient(145deg,#f1f7e5,#dce9c4);box-shadow:0 0 0 2px #9cb96c55,0 3px 0 #bbc99d;color:#364629}.key.empty{background:linear-gradient(145deg,#d9dbd3,#c9ccc2);border-color:#b9bcb2;color:#60655c}.knob{position:absolute;z-index:2;right:11px;width:66px;height:66px;border:1px solid #bfc3b7;border-radius:50%;background:radial-gradient(circle at 35% 28%,#fff 0,#f0f1e9 50%,#cfd2c6 100%);box-shadow:inset 0 2px 4px #ffffffc7,inset 0 -3px 5px #a1a59777,0 4px 0 #aeb2a7,0 7px 12px #1114;display:grid;place-items:center}.knob.k1{top:24px}.knob.k2{top:50%;transform:translateY(-50%)}.knob.k3{bottom:24px}.knob-core{width:34px;height:34px;border:1px solid #c4c8bb;border-radius:50%;display:grid;place-items:center;background:#f7f8f2;color:#42483d;font:8px var(--mono);box-shadow:0 2px 0 #c3c6bb}.knob-side{position:absolute;top:50%;transform:translateY(-50%);z-index:3;color:#3e4934;font:700 7px var(--mono);text-shadow:0 0 3px white,0 0 4px white;white-space:nowrap}.knob-side.left{left:3px}.knob-side.right{right:3px}.knob:after{content:"";position:absolute;inset:7px;border:1px solid #ffffff98;border-radius:50%;pointer-events:none}.stage-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:12px;color:#858a7e;font-size:10px}.stage-foot span{display:flex;align-items:center;gap:6px}.mini-led{width:6px;height:6px;border-radius:50%;background:#b2d57a}.selection{min-height:64px;display:flex;align-items:center;gap:12px;border-bottom:1px solid #edeee8;padding:12px 2px;color:#747a6d;font-size:11px}.selection strong{color:#34392f;font-size:12px}.selection em{font-style:normal;color:#83897c}.save-state{padding-top:10px;color:#83897c;font-size:10px}
+    .editor{display:flex;flex-direction:column;gap:0}.editor .hint{margin-bottom:18px}.selected-key{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px;border:1px solid #e6e8de;border-radius:8px;background:#f8f9f4}.selected-key strong{font:700 12px var(--mono);color:#35432a}.selected-key span{color:#7d8476;font-size:10px}.label{display:block;margin:15px 0 6px;color:#697063;font-size:10px;font-weight:650}.comment,.code{width:100%;border:1px solid #dedfd6;border-radius:7px;background:#fafaf6;color:#3d4338;padding:9px 10px;font:11px/1.5 var(--mono)}.comment{height:38px}.code{flex:1;min-height:190px;resize:none;tab-size:4}.code::placeholder{color:#a0a498}.editor-actions{display:grid;gap:7px;margin-top:12px}.primary,.secondary{min-height:37px;border:1px solid #a8bf79;border-radius:7px;background:#d9ecb8;color:#36472a;font-size:11px;font-weight:650}.secondary{border-color:#dedfd6;background:#fffefa;color:#555b4f}.editor-note{margin:9px 0 0;color:#858a7e;font-size:10px;line-height:1.4}
+    @media(max-width:1150px){.app{padding:0 18px}.workspace{grid-template-columns:220px minmax(350px,1fr) 300px;gap:10px}.center{padding:14px}.editor,.settings{padding:15px}.control.context{width:130px}}
+    @media(max-width:1050px){.app{min-height:100vh}.workspace{grid-template-columns:220px minmax(0,1fr);grid-template-rows:minmax(570px,auto) auto}.editor{grid-column:1/-1;min-height:400px}.code{min-height:170px}.stage{min-height:380px}}
+    @media(max-width:650px){.app{padding:0 10px}.topbar{height:60px}.top-right{gap:6px}.profile{min-width:100px;max-width:130px}.online{display:none}.new-profile{width:36px;justify-content:center;padding:0}.new-profile span{display:none}.workspace{display:flex;flex-direction:column}.settings{order:2}.center{order:1;min-height:590px;padding:13px}.editor{order:3;min-height:440px}.center-head{display:grid}.controls{display:grid;grid-template-columns:1fr 1fr;align-items:end}.control.layer,.control.context,.rotation{width:auto}.rotation{grid-column:1/-1;grid-template-columns:1fr 150px;align-items:center}.stage{min-height:430px}.board{width:min(100%,370px);height:370px;padding:10px}.key-grid{width:calc(100% - 78px);gap:5px}.knob{width:60px;height:60px;right:8px}.knob.k1{top:18px}.knob.k3{bottom:18px}.stage-foot{flex-wrap:wrap}.top-right{gap:6px}}
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <a class="brand" href="#" aria-label="VIA-AHK Studio"><span class="mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span>VIA-AHK <span>Studio</span></span></a>
+      <div class="top-right">
+        <label class="profile"><span class="eyebrow">PERFIL</span><select aria-label="Perfil do macroboard"><option>Macroboard principal</option><option>Atalhos CapCut</option></select></label>
+        <button class="new-profile" type="button"><b aria-hidden="true">+</b><span>Novo perfil</span></button>
+        <div class="online"><i class="dot"></i>Pronto</div>
+      </div>
+    </header>
+    <main>
+      <div class="workspace">
+        <aside class="panel settings" aria-label="Configurações do perfil">
+          <div class="heading"><span class="step">01</span><h1>Arquivos do perfil</h1></div>
+          <p class="hint">Cada macroboard mantém seus próprios arquivos.</p>
+          <div class="file-card"><span class="file-icon">↥</span><div class="file-info"><strong>Definição do teclado</strong><small>Layout e matriz de teclas</small><span class="file-name">KM16pro_definition.json</span></div></div>
+          <div class="file-card"><span class="file-icon">↥</span><div class="file-info"><strong>Mapeamento VIA</strong><small>Camadas, teclas e encoders</small><span class="file-name">KM16pro_keymap.json</span></div></div>
+          <div class="config">
+            <div class="config-title">AutoHotkey deste perfil</div>
+            <div class="btn-row"><button class="quiet" type="button">Escolher .ahk</button><button class="quiet" type="button">Criar arquivo</button></div>
+            <span class="path">C:\Users\igor_\AutoHotkey\Macroboard.ahk</span>
+            <label class="control"><span class="eyebrow">VERSÃO</span><select><option>AutoHotkey v1</option><option>AutoHotkey v2</option></select></label>
+            <p class="config-note">A versão vale somente para este perfil.</p>
+          </div>
+          <div class="local-note"><b>i</b><span>Os JSON e o arquivo AHK ficam salvos localmente neste computador.</span></div>
+        </aside>
+
+        <section class="panel center" aria-label="Layout do macroboard">
+          <div class="center-head">
+            <div><div class="heading"><span class="step">02</span><h2>Layout e mapeamento</h2></div><p class="hint">Selecione uma camada, contexto e tecla.</p></div>
+            <div class="controls">
+              <label class="control layer"><span class="eyebrow">CAMADA</span><select><option>Camada 0</option><option>Camada 1</option></select></label>
+              <label class="control context"><span class="eyebrow">CONTEXTO</span><select><option>Global</option><option>CapCut.exe</option></select></label>
+              <div class="rotation"><span class="eyebrow">ROTAÇÃO</span><div class="rotate"><button aria-label="Girar à esquerda">↶</button><output>0°</output><button aria-label="Girar à direita">↷</button></div></div>
+            </div>
+          </div>
+          <div class="stage">
+            <div class="stage-meta"><span><i class="led"></i>KM16PRO</span><span>VISTA DO MACROBOARD</span></div>
+            <div class="board" aria-label="Visualização do teclado">
+              <div class="key-grid">
+                <button class="key">S_F17</button><button class="key">S_F14</button><button class="key">S_F15</button><button class="key">F16</button>
+                <button class="key active">F17</button><button class="key">F18</button><button class="key empty">S_F19</button><button class="key empty">S_F20</button>
+                <button class="key">F21</button><button class="key">F22</button><button class="key empty">S_F23</button><button class="key empty">S_F24</button>
+                <button class="key">S_F13</button><button class="key">S_F14</button><button class="key">S_F15</button><button class="key">S_F16</button>
+              </div>
+              <div class="knob k1"><span class="knob-side left">F20</span><span class="knob-side right">F24</span><span class="knob-core">TO(1)</span></div>
+              <div class="knob k2"><span class="knob-side left">F19</span><span class="knob-side right">F23</span><span class="knob-core">F13</span></div>
+              <div class="knob k3"><span class="knob-side left">F14</span><span class="knob-side right">F15</span><span class="knob-core">F13</span></div>
+            </div>
+          </div>
+          <div class="stage-foot"><span>Teclas sem ação aparecem suavemente escurecidas</span><span><i class="mini-led"></i>Knobs: giro esquerdo · clique · giro direito</span></div>
+          <div class="selection"><strong>Tecla 1, 0</strong><em>VIA: F17</em><em>Camada 0 · Global</em></div>
+          <div class="save-state">Perfil sincronizado com o arquivo AHK selecionado.</div>
+        </section>
+
+        <aside class="panel editor" aria-label="Editor da ação AutoHotkey">
+          <div class="heading"><span class="step">03</span><h2>Ação da tecla</h2></div>
+          <p class="hint">A tecla selecionada neste perfil e contexto.</p>
+          <div class="selected-key"><strong>F17::</strong><span>Camada 0 · Global</span></div>
+          <label class="label" for="comment">Comentário</label><input class="comment" id="comment" value="Alterna o monitor para TV">
+          <label class="label" for="code">Código AutoHotkey</label><textarea class="code" id="code" spellcheck="false">Run, "C:\Program Files\DisplayFusion\DisplayFusionCommand.exe" --monitorloadprofile "tv"
+return</textarea>
+          <div class="editor-actions"><button class="primary" type="button">Salvar ação</button><button class="secondary" type="button">Abrir no editor padrão</button><button class="secondary" type="button">Atualizar do arquivo</button></div>
+          <p class="editor-note">As alterações são gravadas somente no arquivo AHK vinculado a este perfil.</p>
+        </aside>
+      </div>
+    </main>
+  </div>
+  <script>
+    document.querySelectorAll('.key').forEach((key) => key.addEventListener('click', () => {
+      document.querySelector('.key.active')?.classList.remove('active'); key.classList.add('active');
+      document.querySelector('.selected-key strong').textContent = `${key.textContent.trim()}::`;
+    }));
+  </script>
+</body>
+</html>

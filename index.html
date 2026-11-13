@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f4f2ed" />
+    <title>VIA-AHK Studio</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="stylesheet" href="style.css" />
+    <script defer src="ahk.js"></script>
+    <script defer src="app.js"></script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="#" aria-label="VIA-AHK Studio">
+          <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+          <span>VIA-AHK <span class="brand-light">Studio</span></span>
+        </a>
+        <div class="topbar-actions">
+          <select id="profile-select" aria-label="Selecionar perfil do macroboard" hidden></select>
+          <nav id="profile-tabs" class="profile-tabs" aria-label="Perfis de macroboard"></nav>
+          <button id="profile-create" class="profile-create" type="button" title="Adicionar um perfil para outro macroboard" disabled>
+            <span class="profile-create-icon" aria-hidden="true">+</span><span class="profile-create-text">Novo perfil</span>
+          </button>
+          <details class="palette-menu"><summary aria-label="Escolher cor de destaque" title="Cores">🖌</summary><div class="palette-options" role="group" aria-label="Cor de destaque"><button type="button" data-accent="green" aria-label="Verde" title="Verde"></button><button type="button" data-accent="blue" aria-label="Azul" title="Azul"></button><button type="button" data-accent="red" aria-label="Vermelho" title="Vermelho"></button><button type="button" data-accent="purple" aria-label="Roxo" title="Roxo"></button><button type="button" data-accent="orange" aria-label="Laranja" title="Laranja"></button></div></details>
+          <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Ativar modo noturno" title="Alternar tema">☾</button>
+        </div>
+      </header>
+
+      <main>
+        <section class="workspace" aria-label="Visualizador do teclado">
+          <aside class="sidebar">
+            <div class="panel-heading"><span class="step-index">01</span><h2>Arquivos</h2></div>
+
+            <label class="upload-card" for="definition-file">
+              <span class="upload-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 16V4m0 0L7.5 8.5M12 4l4.5 4.5M5 14v5h14v-5" /></svg></span>
+              <span class="upload-text"><strong>Definição do teclado</strong><small>Layout e matriz de teclas</small><span class="file-name" data-file-name="definition">Escolher arquivo <b>↗</b></span></span>
+              <input id="definition-file" type="file" accept=".json,application/json" />
+            </label>
+
+            <label class="upload-card" for="mapping-file">
+              <span class="upload-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 16V4m0 0L7.5 8.5M12 4l4.5 4.5M5 14v5h14v-5" /></svg></span>
+              <span class="upload-text"><strong>Mapeamento VIA</strong><small>Camadas e comandos dos encoders</small><span class="file-name" data-file-name="mapping">Escolher arquivo <b>↗</b></span></span>
+              <input id="mapping-file" type="file" accept=".json,application/json" />
+            </label>
+
+            <div class="ahk-file-control ahk-card">
+              <div class="ahk-card-heading"><button type="button" id="ahk-card-toggle" class="ahk-card-toggle" aria-expanded="false"><span class="upload-icon" aria-hidden="true">⌘</span><span><strong>Arquivo AutoHotkey</strong><small>Ações deste macroboard</small></span></button><button type="button" id="ahk-version-badge" class="version-indicator" title="Versão para a próxima seleção de arquivo">v1</button><select id="ahk-version" hidden><option value="1">v1</option><option value="2">v2</option></select></div>
+              <div class="ahk-file-actions">
+                <span id="ahk-version-note" class="ahk-version-note" hidden></span>
+                <button id="ahk-choose" class="secondary-button" type="button">Escolher arquivo</button>
+                <button id="ahk-create" class="secondary-button" type="button">Criar arquivo</button>
+                <label id="ahk-reuse-wrap" class="ahk-reuse" hidden><span>Usar o mesmo AHK de outro perfil</span><select id="ahk-reuse-select" aria-label="Usar AHK de outro perfil"><option value="">Escolher perfil</option></select></label>
+                <span id="ahk-file-label" class="ahk-file-label">Nenhum arquivo selecionado</span>
+                <input id="ahk-file" type="file" accept=".ahk,text/plain" hidden />
+              </div>
+            </div>
+          </aside>
+
+          <section class="editor-panel" aria-label="Mapeamento VIA">
+            <div class="editor-header">
+              <div><div class="panel-heading editor-title"><span class="step-index">02</span><h2>Layout e mapeamento</h2></div></div>
+              <div class="layout-controls">
+                <div class="rotation-control"><span class="control-label">COMENTÁRIOS (ALT)</span><button id="comments-toggle" class="secondary-button" type="button" aria-pressed="false" title="Mostrar comentários; segure Alt para alternar">Mostrar</button></div>
+                <label class="layer-control"><span>CAMADA</span><select id="layer-select" aria-label="Selecionar camada" disabled><option value="0">Camada 0</option></select><span class="select-chevron">⌄</span></label>
+                <label class="layer-control" for="action-context">
+                  <span>CONTEXTO DA AÇÃO</span>
+                  <select id="action-context" aria-label="Selecionar contexto da ação">
+                    <option value="global">Global</option>
+                    <option value="application">Aplicativo</option>
+                    <option value="window">Janela</option>
+                  </select>
+                  <span class="select-chevron">⌄</span>
+                </label>
+                <div class="rotation-control" aria-label="Rotação do layout">
+                  <span class="control-label">ROTAÇÃO</span>
+                  <div class="rotation-actions"><button id="rotate-left" type="button" aria-label="Girar para a esquerda" title="Girar para a esquerda">↶</button><output id="rotation-label" aria-live="polite">0°</output><button id="rotate-right" type="button" aria-label="Girar para a direita" title="Girar para a direita">↷</button></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="keyboard-stage">
+              <div class="keyboard-topline"><span class="device-label"><span class="device-led"></span> <span class="device-name">TECLADO</span></span><span class="key-count">LAYOUT DO ARQUIVO</span></div>
+              <div class="keyboard-viewport">
+                <div id="keyboard-frame" class="keyboard-frame"><div id="keyboard" class="keyboard keyboard-layout" aria-label="Layout do teclado"></div></div>
+                <div class="keyboard-empty">Carregue a definição do teclado para exibir o layout.</div>
+              </div>
+            </div>
+
+            <div id="details" class="details-panel" aria-live="polite">Clique em uma tecla para começar a editar.</div>
+            <div id="status" class="status-bar" role="status"><span class="status-dot"></span><span>Carregue os dois arquivos JSON para começar.</span><span class="status-trailing">AGUARDANDO ARQUIVOS</span></div>
+          </section>
+        <section class="ahk-panel action-panel" aria-labelledby="action-heading">
+          <div class="ahk-intro">
+            <div class="panel-heading"><span class="step-index">04</span><h2 id="action-heading">Ações por tecla</h2></div>
+          </div>
+          <label class="panel-copy" for="action-comment">Comentário</label>
+          <input class="action-comment" id="action-comment" type="text" maxlength="500" placeholder="Observação opcional sobre esta ação" />
+          <label class="panel-copy" for="action-code">Código da ação</label>
+          <textarea class="action-editor" id="action-code" rows="8" spellcheck="false" placeholder="Selecione uma tecla compatível para começar."></textarea>
+          <div class="ahk-controls">
+            <button id="action-save" class="ahk-download" type="button" disabled>Salvar ação</button>
+            <button id="action-open" class="ahk-download" type="button" disabled>Abrir no editor</button>
+            <button id="action-refresh" class="ahk-download" type="button" disabled>Atualizar do arquivo externo</button>
+          </div>
+          <p id="action-status" class="ahk-message" role="status" aria-live="polite">Teclas que enviam o mesmo atalho compartilham a ação.</p>
+        </section>
+        </section>
+      </main>
+      <dialog id="profile-rename-dialog" class="profile-dialog" aria-labelledby="profile-rename-title">
+        <form id="profile-rename-form">
+          <h2 id="profile-rename-title">Renomear perfil</h2>
+          <p>Escolha um nome para identificar este macroboard.</p>
+          <label for="profile-rename-name">Nome do perfil</label>
+          <input id="profile-rename-name" maxlength="48" required autocomplete="off" />
+          <p id="profile-rename-error" class="profile-rename-error" role="alert" hidden></p>
+          <div class="profile-dialog-actions"><button id="profile-rename-cancel" type="button">Cancelar</button><button id="profile-rename-save" type="submit" class="profile-submit">Salvar nome</button></div>
+        </form>
+      </dialog>
+      <dialog id="profile-dialog" class="profile-dialog" aria-labelledby="profile-dialog-title">
+        <form id="profile-form" method="dialog">
+          <span class="profile-dialog-mark" aria-hidden="true">＋</span>
+          <h2 id="profile-dialog-title">Novo perfil</h2>
+          <p>Crie um espaço separado para outro macroboard. Os JSON e o arquivo AHK ficam vinculados a este perfil.</p>
+          <label for="profile-name">Nome do macroboard</label>
+          <input id="profile-name" name="name" maxlength="48" required autocomplete="off" placeholder="Ex.: Teclas de edição" />
+          <div class="profile-dialog-actions">
+            <button id="profile-cancel" type="button" class="profile-cancel">Cancelar</button>
+            <button type="submit" class="profile-submit">Criar perfil</button>
+          </div>
+        </form>
+      </dialog>
+    </div>
+  </body>
+</html>
+
+
